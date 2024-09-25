@@ -2,7 +2,8 @@ from google.cloud.firestore import Client as FirestoreClient
 import datetime
 from response_format import generate_error, generate_success
 from firebase_admin import firestore
-
+import random
+import string
 
 def upsert(data: dict, db: FirestoreClient):
     
@@ -23,6 +24,9 @@ def upsert(data: dict, db: FirestoreClient):
     details["lastUpdated"] = datetime.datetime.now().isoformat()
     
     details['gameId'] = player_id
+    #Generate random 4 digit code with letters and numbers
+    details['lobbyCode'] =  ''.join(random.choices(string.ascii_uppercase + string.digits, k=4))
+    
     details['isLobbyOpen'] = True
     details['participants'] = [
         player_id,

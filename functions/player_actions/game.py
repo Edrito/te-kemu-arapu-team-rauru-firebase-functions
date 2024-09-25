@@ -1,26 +1,39 @@
 from google.cloud.firestore import Client as FirestoreClient
-import datetime
 from response_format import generate_error, generate_success
 from firebase_admin import firestore
-
+import datetime_functions as dtf
+import cloud_task as ct
 
 def start(data: dict, db: FirestoreClient):
 
     player_id = data.get("playerId")
 
+    time_end = dtf.get_future_time(5)
+
     db.collection("games").document(player_id).set(
         {
             "isLobbyOpen": False,
             "state": {
+                "currentGame": "0",
                 "phase": "loading",
-                "nextPhase":"chosingCategory",
+                "scores":{
+                    "id":0
+                },
+                "gameState": {
+                    "phase": None,
+                    "phaseEnd": None,
+                },
                 "phaseEnd": (
-                    datetime.datetime.now() + datetime.timedelta(seconds=5)
+                   time_end
                 ).isoformat(),
             },
-        
         },
         merge=True,
     )
+
+    ct.create_cloud_task("game_state", player_id, {
+        "gameId": player_id
+    }, time_end, None)
+
 
     return generate_success()
