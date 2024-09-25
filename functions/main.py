@@ -78,16 +78,16 @@ def on_player_action(req: https_fn.Request) -> https_fn.Response:
         case "vote":
             action_result = vote.handle_action(json_data, db)
 
-        case "lobby_upsert":
+        case "lobbyUpsert":
             action_result = lobby.upsert(json_data, db)
 
-        case "lobby_delete":
+        case "lobbyDelete":
             action_result = lobby.delete(json_data, db)
 
-        case "lobby_join":
+        case "lobbyJoin":
             action_result = lobby.join(json_data, db)
 
-        case "lobby_leave":
+        case "lobbyLeave":
             action_result = lobby.leave(json_data, db)
 
     if action_result is not None:
