@@ -39,6 +39,6 @@ id_token = auth.create_custom_token(user.uid)
 
 from functions.cloud_task import create_cloud_task, delete_cloud_task
 id = str(uuid.uuid4())
-create_cloud_task("player_action", id, {"yea":"yea"}, datetime.datetime.now(tz=pytz.timezone("NZ")) + datetime.timedelta(seconds=5) ,credentials_file)
+create_cloud_task( id, {"yea":"yea"}, datetime.datetime.now(tz=pytz.timezone("NZ")) + datetime.timedelta(seconds=5) ,credentials_file)
 # delete_cloud_task(credentials_file, id)
 

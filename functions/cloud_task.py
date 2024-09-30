@@ -18,9 +18,10 @@ def delete_cloud_task(cred, gameId):
     parent = get_queue_path(client)
     client.delete_task(name=parent + "/tasks/"+gameId)
 
-def create_cloud_task( type,gameId, payload,time_to_execute:datetime.datetime, cred):
+def create_cloud_task( gameId, payload,time_to_execute:datetime.datetime, cred):
     project_id = 'te-kemu-arapu'
     location = 'us-central1' 
+    delete_cloud_task(cred, gameId)
     
     # Create a client
     client = tasks_v2.CloudTasksClient(credentials=cred)
@@ -29,11 +30,8 @@ def create_cloud_task( type,gameId, payload,time_to_execute:datetime.datetime, c
     parent = get_queue_path(client)
     # client.create_queue(parent=parent, queue={"name": parent})
 
-    match type:
-        case "game_state":
-            url = f'https://{location}-{project_id}.cloudfunctions.net/game_state'
-        case "player_action":
-            url = "https://webhook.site/3ea89678-34dc-42b0-8ad7-6c45bcf06fc1"
+
+    url = f'https://{location}-{project_id}.cloudfunctions.net/game_state'
 
     # Construct the request body
     task = {

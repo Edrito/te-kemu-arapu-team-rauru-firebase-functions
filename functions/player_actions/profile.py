@@ -11,7 +11,7 @@ def handle_action(data: dict, db: FirestoreClient):
         return generate_error("No details provided", 400)
     
     details["lastUpdated"] = datetime.datetime.now().isoformat()
-    db.collection("players").document(data.get("playerId"))\
+    db.collection("profile").document(data.get("playerId"))\
         .set(details, merge=True)
 
     return generate_success()

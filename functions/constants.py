@@ -8,7 +8,24 @@ CATEGORIES = [
 
 
 DIFFICULTY_TIMES = {
-    "beginner": 40,
-    "intermediate": 20,
-    "pro": 10,
+    "Beginner": 30,
+    "Intermediate": 15,
+    "Pro": 5,
 }
+
+
+MAORI_ALPHABET = [
+    "a",
+    "e",
+    "h",
+    "i",
+    "k",
+    "m",
+    "n",
+    "o",
+    "p",
+    "r",
+    "t",
+    "u",
+    "w",
+]

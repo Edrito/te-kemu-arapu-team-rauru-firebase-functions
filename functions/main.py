@@ -6,6 +6,7 @@ from format_checker import check_format
 import player_actions.profile as profile
 import player_actions.vote as vote
 import player_actions.lobby as lobby
+import player_actions.game as game
 from response_format import generate_error, generate_success
 from datetime_functions import get_future_time, get_current_time, parse_time
 import cloud_task as ct
@@ -39,7 +40,7 @@ def manage_game_state(request: https_fn.Request) -> https_fn.Response:
             )
             db.collection("games").document(game_id).set(doc_dict, merge=True)
             ct.create_cloud_task(
-                "game_state", game_id, {"gameId": game_id}, get_future_time(5), None
+             game_id, {"gameId": game_id}, get_future_time(5), None
             )
             #TODO if errors > 5, end game
             return result
@@ -48,7 +49,7 @@ def manage_game_state(request: https_fn.Request) -> https_fn.Response:
 
     else:
         ct.create_cloud_task(
-            "game_state", game_id, {"gameId": game_id}, phase_end, None
+         game_id, {"gameId": game_id}, phase_end, None
         )
 
     return https_fn.Response(json.dumps({}), content_type="application/json")
@@ -89,6 +90,9 @@ def on_player_action(req: https_fn.Request) -> https_fn.Response:
 
         case "lobbyLeave":
             action_result = lobby.leave(json_data, db)
+
+        case "lobbyStart":
+            action_result = game.start(json_data, db)
 
     if action_result is not None:
         return action_result

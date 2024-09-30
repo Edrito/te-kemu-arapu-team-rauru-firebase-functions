@@ -8,17 +8,21 @@ def start(data: dict, db: FirestoreClient):
 
     player_id = data.get("playerId")
 
-    time_end = dtf.get_future_time(5)
+    time_end = dtf.get_future_time(10)
 
+    participants = data.get("participants")
+
+
+    scores = {}
+    for participant in participants:
+        scores[participant] = 0
     db.collection("games").document(player_id).set(
         {
             "isLobbyOpen": False,
             "state": {
                 "currentGame": "0",
                 "phase": "loading",
-                "scores":{
-                    "id":0
-                },
+                "scores":scores,
                 "gameState": {
                     "phase": None,
                     "phaseEnd": None,
@@ -31,7 +35,7 @@ def start(data: dict, db: FirestoreClient):
         merge=True,
     )
 
-    ct.create_cloud_task("game_state", player_id, {
+    ct.create_cloud_task( player_id, {
         "gameId": player_id
     }, time_end, None)
 
