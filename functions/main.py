@@ -59,42 +59,50 @@ def manage_game_state(request: https_fn.Request) -> https_fn.Response:
     region="us-central1",
 )
 def on_player_action(req: https_fn.Request) -> https_fn.Response:
-    db: FirestoreClient = firestore.client()
-    # Check if content type is json
-    format_result = check_format(req)
-    if format_result is not None:
-        return format_result
 
-    json_data = req.json
-    action = json_data.get("action")
-    if action is None:
-        return generate_error("No action provided", 400)
+    try:
 
-    action_type = action.get("type")
+        db: FirestoreClient = firestore.client()
+        # Check if content type is json
+        format_result = check_format(req)
+        if format_result is not None:
+            return format_result
 
-    match action_type:
-        case "profile":
-            action_result = profile.handle_action(json_data, db)
+        json_data = req.json
+        action = json_data.get("action")
+        if action is None:
+            return generate_error("No action provided", 400)
 
-        case "vote":
-            action_result = vote.handle_action(json_data, db)
+        action_type = action.get("type")
 
-        case "lobbyUpsert":
-            action_result = lobby.upsert(json_data, db)
+        match action_type:
+            case "profile":
+                #May not be used
+                action_result = profile.handle_action(json_data, db)
 
-        case "lobbyDelete":
-            action_result = lobby.delete(json_data, db)
+            case "vote":
+                action_result = vote.handle_action(json_data, db)
 
-        case "lobbyJoin":
-            action_result = lobby.join(json_data, db)
+            case "lobbyUpsert":
+                action_result = lobby.upsert(json_data, db)
 
-        case "lobbyLeave":
-            action_result = lobby.leave(json_data, db)
+            case "lobbyDelete":
+                action_result = lobby.delete(json_data, db)
 
-        case "lobbyStart":
-            action_result = game.start(json_data, db)
+            case "lobbyJoin":
+                action_result = lobby.join(json_data, db)
 
-    if action_result is not None:
-        return action_result
+            case "lobbyLeave":
+                action_result = lobby.leave(json_data, db)
 
-    return generate_error("Unknown error.", 500)
+            case "lobbyStart":
+                action_result = game.start(json_data, db)
+
+        if action_result is not None:
+            return action_result
+
+        return generate_error(f"Unknown player action -> {action_type}", 500)
+    
+
+    except Exception as e:
+        return generate_error(str(e), 500)

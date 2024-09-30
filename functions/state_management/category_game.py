@@ -19,7 +19,6 @@ def template_game_state(datetime: datetime) -> dict:
         "negativeVotes": [],
         "neutralVotes": [],
         "lettersCovered": [],
-        "category": None,
         "playersEliminated": [],
         "hintWordsUsed": [],
         "playerTurn": None,
@@ -28,6 +27,12 @@ def template_game_state(datetime: datetime) -> dict:
         "selectedLetter": None,
     }
 
+def reset_votes(data: dict) -> dict:
+    data["positiveVotes"] = []
+    data["negativeVotes"] = []
+    data["neutralVotes"] = []
+
+    return data
 
 def queue_game_state_call(
     game_state: dict, state: dict, doc_id: str, db: FirestoreClient, time: datetime, merge: bool = True
@@ -145,6 +150,7 @@ def manage_game(doc_dict: dict, doc_id: str, db: FirestoreClient) -> https_fn.Re
             time = DIFFICULTY_TIMES[difficulty]
 
             game_state["phase"] = "voting"
+            game_state = reset_votes(game_state)
             end_time = get_future_time(time)
             game_state["phaseEnd"] = end_time.isoformat()
 
@@ -177,9 +183,7 @@ def manage_game(doc_dict: dict, doc_id: str, db: FirestoreClient) -> https_fn.Re
                 else:
                     scores[player_turn] = 1
 
-            game_state["positiveVotes"] = []
-            game_state["negativeVotes"] = []
-            game_state["neutralVotes"] = []
+            game_state = reset_votes(game_state)
 
             letters_covered = game_state.get("lettersCovered")
             selected_letter = game_state.get("selectedLetter")

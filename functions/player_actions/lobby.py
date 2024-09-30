@@ -4,6 +4,7 @@ from response_format import generate_error, generate_success
 from firebase_admin import firestore
 import random
 import string
+from constants import MAORI_ALPHABET
 
 def upsert(data: dict, db: FirestoreClient):
     
@@ -25,7 +26,7 @@ def upsert(data: dict, db: FirestoreClient):
     
     details['gameId'] = player_id
     #Generate random 4 digit code with letters and numbers
-    details['lobbyCode'] =  ''.join(random.choices(string.ascii_uppercase + string.digits, k=4))
+    details['lobbyCode'] =  ''.join(random.choices(MAORI_ALPHABET + string.digits, k=4))
     
     details['isLobbyOpen'] = True
     details['participants'] = [
@@ -41,11 +42,6 @@ def upsert(data: dict, db: FirestoreClient):
 
 def delete(data: dict, db: FirestoreClient):
     
-    action = data.get('action')
-    details = action.get('details')
-    if details is None:
-        return generate_error("No details provided", 400)
-    
     player_id = data.get("playerId")
 
     db.collection("games").document(player_id)\
@@ -54,27 +50,18 @@ def delete(data: dict, db: FirestoreClient):
     return generate_success()
 
 def join(data: dict, db: FirestoreClient):
-    
-    action = data.get('action')
-    details = action.get('details')
-    if details is None:
-        return generate_error("No details provided", 400)
-    
     player_id = data.get("playerId")
+    game_id = data.get("gameId")
 
-    game_id = details.get("gameId")
+
     if game_id is None:
         return generate_error("No game id provided", 400)
     
     game = db.collection("games").document(game_id).get()
-    if not game.exists:
-        return generate_error("Game does not exist", 400)
-    
-    game_data = game.to_dict()
 
-    participants = game_data.get("participants")
-    if not participants:
-        participants = []
+    if not game.exists:
+        return generate_error("Game does not exist!", 400)
+    
 
     db.collection("games").document(game_id)\
         .update({
@@ -85,30 +72,17 @@ def join(data: dict, db: FirestoreClient):
 
 def leave(data: dict, db: FirestoreClient):
     
-    action = data.get('action')
-    details = action.get('details')
-    if details is None:
-        return generate_error("No details provided", 400)
-    
     player_id = data.get("playerId")
 
-    game_id = details.get("gameId")
+    game_id = data.get("gameId")
+
     if game_id is None:
         return generate_error("No game id provided", 400)
     
-    game = db.collection("games").document(game_id).get()
-    if not game.exists:
-        return generate_error("Game does not exist", 400)
-    
-    game_data = game.to_dict()
-
-    participants = game_data.get("participants")
-    if not participants:
-        participants = []
-
     db.collection("games").document(game_id)\
         .update({
             "participants": firestore.ArrayRemove([player_id])
         })
+ 
     
     return generate_success()

@@ -9,20 +9,14 @@ def start(data: dict, db: FirestoreClient):
     player_id = data.get("playerId")
 
     time_end = dtf.get_future_time(10)
-
-    participants = data.get("participants")
-
-
-    scores = {}
-    for participant in participants:
-        scores[participant] = 0
+ 
     db.collection("games").document(player_id).set(
         {
             "isLobbyOpen": False,
             "state": {
                 "currentGame": "0",
                 "phase": "loading",
-                "scores":scores,
+                "scores":None,
                 "gameState": {
                     "phase": None,
                     "phaseEnd": None,

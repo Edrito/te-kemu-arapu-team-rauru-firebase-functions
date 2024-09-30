@@ -15,11 +15,11 @@ def manage_state(doc_dict:dict,doc_id:str, db: FirestoreClient) -> https_fn.Resp
     settings = doc_dict.get('settings')
 
     if not settings:
-        return generate_error("No settings provided", 400)
+        return generate_error("No settings provided, please refer to the game_state.json", 400)
     
     games = settings.get('games')
     if not games:
-        return generate_error("No games provided", 400)
+        return generate_error("No games provided, please refer to the game_state.json", 400)
     
    
     
@@ -27,6 +27,15 @@ def manage_state(doc_dict:dict,doc_id:str, db: FirestoreClient) -> https_fn.Resp
         case "loading":
             doc_dict["state"]["phase"] = "playing"
             doc_dict['state']['phaseEnd'] = None
+
+            #If first time playing, set scores to 0
+            previous_scores = state.get('scores')
+            if not previous_scores:
+                scores = {}
+                for player in doc_dict.get('participants'):
+                    scores[player] = 0
+                doc_dict['state']['score'] = scores
+
             db.collection("games").document(doc_id).set(doc_dict, merge=True)
         case 'end':
             #find the next [current_game] in the list of games keys
@@ -44,12 +53,16 @@ def manage_state(doc_dict:dict,doc_id:str, db: FirestoreClient) -> https_fn.Resp
             if not next_game:
                 doc_dict["state"]["phase"] = "lobbyEnd"
                 db.collection("games").document(doc_id).set(doc_dict, merge=True)
+                db.collection("gamesArchive").document(doc_id).set(doc_dict)
                 return generate_success()
             else :
                 current_game = next_game
                 doc_dict["state"]["currentGame"] = current_game
                 doc_dict["state"]["phase"] = "loading"
                 db.collection("games").document(doc_id).set(doc_dict, merge=True)
+
+        case 'lobbyEnd':
+            return generate_success(msg="Game has ended, no more games to play!")
 
     #TODO
     current_game_info = games.get(current_game)
