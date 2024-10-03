@@ -28,29 +28,40 @@ def template_game_state(datetime: datetime) -> dict:
     }
 
 
-
 def queue_game_state_call(
-    game_state: dict, state: dict, doc_id: str, db: FirestoreClient, time: datetime, merge: bool = True
+    game_state: dict,
+    state: dict,
+    doc_data:dict|None,
+    doc_id: str,
+    db: FirestoreClient,
+    time: datetime,
+    merge: bool = True,
 ):
-    create_cloud_task(
-        doc_id, {"gameId": doc_id}, get_future_time(time), None, db=db
-    )
     state["gameState"] = game_state
-    db.collection("games").document(doc_id).set(state, merge=merge)
+
+    if not merge and doc_data:
+        doc_data["state"] = state
+        db.collection("games").document(doc_id).set(doc_data)
+    else:
+        db.collection("games").document(doc_id).set({"state": state}, merge=True)
+    create_cloud_task(doc_id, {"gameId": doc_id}, time, db=db)
+
 
 def game_end(doc_dict: dict, doc_id: str, db: FirestoreClient) -> https_fn.Response:
     state = doc_dict.get("state")
-    state['phase'] = 'end'
+    state["phase"] = "end"
     end_time = get_future_time(15)
-    state['phaseEnd'] = end_time.isoformat()
+    state["phaseEnd"] = end_time.isoformat()
 
-    queue_game_state_call({}, state, doc_id, db, end_time)
+    queue_game_state_call({}, state, doc_id, db, end_time,
+                           merge=False, doc_data=doc_dict)
 
     return generate_success()
 
 
-
-def eliminate_player(doc_dict: dict, doc_id: str, db: FirestoreClient) -> https_fn.Response:
+def eliminate_player(
+    doc_dict: dict, doc_id: str, db: FirestoreClient
+) -> https_fn.Response:
     state = doc_dict.get("state")
     game_state = state.get("gameState")
     player_turn = game_state.get("playerTurn")
@@ -61,14 +72,14 @@ def eliminate_player(doc_dict: dict, doc_id: str, db: FirestoreClient) -> https_
     end_time = get_future_time(5)
     game_state["phaseEnd"] = end_time.isoformat()
 
-    game_state['votes'] = {}
-    game_state['playerPassed'] = None
-    game_state['selectedLetter'] = None
-
+    game_state["votes"] = {}
+    game_state["playerPassed"] = None
+    game_state["selectedLetter"] = None
 
     queue_game_state_call(game_state, state, doc_id, db, end_time)
 
     return generate_success()
+
 
 def manage_game(doc_dict: dict, doc_id: str, db: FirestoreClient) -> https_fn.Response:
     state = doc_dict.get("state")
@@ -77,7 +88,7 @@ def manage_game(doc_dict: dict, doc_id: str, db: FirestoreClient) -> https_fn.Re
 
     # if phase is None, create a new game state
     if phase is None:
-        end_time = get_future_time(5)
+        end_time = get_future_time(20)
         game_state = template_game_state(end_time)
         queue_game_state_call(game_state, state, doc_id, db, end_time)
         return generate_success()
@@ -99,7 +110,9 @@ def manage_game(doc_dict: dict, doc_id: str, db: FirestoreClient) -> https_fn.Re
 
             if most_voted_category is not None:
                 game_state["currentCategory"] = most_voted_category
-                game_state["categoriesCovered"] = categories_covered.append(most_voted_category)
+                game_state["categoriesCovered"] = categories_covered.append(
+                    most_voted_category
+                )
                 game_state["phase"] = "choosingPlayer"
                 end_time = get_future_time(5)
                 game_state["phaseEnd"] = end_time.isoformat()
@@ -109,17 +122,12 @@ def manage_game(doc_dict: dict, doc_id: str, db: FirestoreClient) -> https_fn.Re
                 return generate_success()
 
             game_state["categoryVotes"] = {}
-            
+
             potential_categories = (
                 cat for cat in categories if cat not in categories_covered
             )
             if potential_categories is None:
-                state['phase'] = 'end'
-                end_time = get_future_time(15)
-                state['phaseEnd'] = end_time.isoformat()
-                queue_game_state_call(game_state, state, doc_id, db, end_time, merge= False)
-
-                return generate_success()
+                return game_end(doc_dict, doc_id, db)
             else:
                 category = random.choice(list(potential_categories))
 
@@ -172,7 +180,7 @@ def manage_game(doc_dict: dict, doc_id: str, db: FirestoreClient) -> https_fn.Re
             time = DIFFICULTY_TIMES[difficulty]
 
             game_state["phase"] = "voting"
-            game_state['votes'] = {}
+            game_state["votes"] = {}
             end_time = get_future_time(time)
             game_state["phaseEnd"] = end_time.isoformat()
 
@@ -183,21 +191,16 @@ def manage_game(doc_dict: dict, doc_id: str, db: FirestoreClient) -> https_fn.Re
         case "voting":
             player_passed = game_state.get("playerPassed")
 
-            if  player_passed:
+            if player_passed:
 
                 return eliminate_player(doc_dict, doc_id, db)
-            
 
             # get the next player from participants not in playersEliminated
             player_turn = game_state.get("playerTurn")
-        
-
 
             votes = game_state.get("votes")
             postive_votes = [vote for vote in votes.values() if vote == "positive"]
             negative_votes = [vote for vote in votes.values() if vote == "negative"]
-
-
 
             gets_point = None
 
@@ -217,7 +220,7 @@ def manage_game(doc_dict: dict, doc_id: str, db: FirestoreClient) -> https_fn.Re
                 else:
                     scores[player_turn] = 1
 
-            game_state['votes'] = {}
+            game_state["votes"] = {}
 
             letters_covered = game_state.get("lettersCovered")
             selected_letter = game_state.get("selectedLetter")
