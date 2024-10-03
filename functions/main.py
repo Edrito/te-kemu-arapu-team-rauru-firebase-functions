@@ -18,11 +18,13 @@ from google.cloud.firestore import (
     Client as FirestoreClient,
 )  # importing the return type of firestore.client()
 
+
 app = firebase_admin.initialize_app()
 
 
 @https_fn.on_request(
     region="us-central1",
+    ingress=options.IngressSetting("ALLOW_ALL"),
 )
 def manage_game_state(request: https_fn.Request) -> https_fn.Response:
     json_data = request.json
@@ -43,7 +45,7 @@ def manage_game_state(request: https_fn.Request) -> https_fn.Response:
             )
             db.collection("games").document(game_id).set(doc_dict, merge=True)
             ct.create_cloud_task(
-             game_id, {"gameId": game_id}, get_future_time(5), None
+             game_id, {"gameId": game_id}, get_future_time(5), None, db=db
             )
             #TODO if errors > 5, end game
             return result
@@ -52,7 +54,7 @@ def manage_game_state(request: https_fn.Request) -> https_fn.Response:
 
     else:
         ct.create_cloud_task(
-         game_id, {"gameId": game_id}, phase_end, None
+         game_id, {"gameId": game_id}, phase_end, None, db=db
         )
 
     return https_fn.Response(json.dumps({}), content_type="application/json")

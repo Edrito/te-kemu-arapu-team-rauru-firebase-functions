@@ -31,7 +31,7 @@ def start(data: dict, db: FirestoreClient):
 
     ct.create_cloud_task( player_id, {
         "gameId": player_id
-    }, time_end, None)
+    }, time_end, None, db=db)
 
 
     return generate_success()

@@ -33,7 +33,7 @@ def queue_game_state_call(
     game_state: dict, state: dict, doc_id: str, db: FirestoreClient, time: datetime, merge: bool = True
 ):
     create_cloud_task(
-        doc_id, {"gameId": doc_id}, get_future_time(time), None
+        doc_id, {"gameId": doc_id}, get_future_time(time), None, db=db
     )
     state["gameState"] = game_state
     db.collection("games").document(doc_id).set(state, merge=merge)
