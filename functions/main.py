@@ -8,7 +8,7 @@ import player_actions.vote as vote
 import player_actions.lobby as lobby
 import player_actions.game as game
 import player_actions.categoryVote as categoryVote
-import functions.player_actions._pass as _pass
+import player_actions._pass as _pass
 import player_actions.letterSelect as letterSelect
 from response_format import generate_error, generate_success
 from datetime_functions import get_future_time, get_current_time, parse_time
@@ -108,7 +108,7 @@ def on_player_action(req: https_fn.Request) -> https_fn.Response:
                 action_result = categoryVote.handle_action(json_data, db)
 
             case "letterSelect":
-                action_result = categoryVote.handle_action(json_data, db)
+                action_result = letterSelect.handle_action(json_data, db)
             case "pass":
                 action_result = _pass.handle_action(json_data, db)
 

@@ -13,10 +13,23 @@ def get_queue_path( client:tasks_v2.CloudTasksClient)-> str:
     return parent 
 
 def delete_cloud_task(cred, gameId):
-    # Create a client
-    client = tasks_v2.CloudTasksClient(credentials=cred)
-    parent = get_queue_path(client)
-    client.delete_task(name=parent + "/tasks/"+gameId)
+
+
+    try:
+
+        # Create a client
+        client = tasks_v2.CloudTasksClient(credentials=cred)
+
+
+        parent = get_queue_path(client)
+
+        #Check if task exists before trying to delete
+        task = client.get_task(name=parent + "/tasks/"+gameId)
+        if task:
+            client.delete_task(name=parent + "/tasks/"+gameId)
+    except Exception as e:
+        print(e)
+        
 
 def create_cloud_task( gameId, payload,time_to_execute:datetime.datetime, cred):
     project_id = 'te-kemu-arapu'
