@@ -13,8 +13,9 @@ DIFFICULTY_TIMES = {
     "Pro": 5,
 }
 
+MAORI_ALPHABET = "aehikmnoprutuw"
 
-MAORI_ALPHABET = [
+MAORI_ALPHABET_LIST = [
     "a",
     "e",
     "h",

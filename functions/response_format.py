@@ -16,12 +16,12 @@ def generate_error(msg:str, code:int)-> https_fn.Response:
         mimetype="application/json",
     )
 
-def generate_success(msg:str = None)-> https_fn.Response:
+def generate_success(msg:str = None, custom_payload:dict = None)-> https_fn.Response:
     return https_fn.Response(
         json.dumps(
             {
                 "status": msg if msg is not None else "success",
-            }
+            } if custom_payload is None else custom_payload
         ),
         status=200,
         mimetype="application/json",

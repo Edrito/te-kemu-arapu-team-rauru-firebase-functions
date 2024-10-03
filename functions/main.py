@@ -1,4 +1,4 @@
-from firebase_functions import https_fn
+from firebase_functions import https_fn, options
 from firebase_admin import firestore
 import firebase_admin
 import json
@@ -7,6 +7,9 @@ import player_actions.profile as profile
 import player_actions.vote as vote
 import player_actions.lobby as lobby
 import player_actions.game as game
+import player_actions.categoryVote as categoryVote
+import functions.player_actions._pass as _pass
+import player_actions.letterSelect as letterSelect
 from response_format import generate_error, generate_success
 from datetime_functions import get_future_time, get_current_time, parse_time
 import cloud_task as ct
@@ -57,6 +60,9 @@ def manage_game_state(request: https_fn.Request) -> https_fn.Response:
 
 @https_fn.on_request(
     region="us-central1",
+    cors=options.CorsOptions(
+        cors_origins="*",
+        cors_methods=["get", "post",],)
 )
 def on_player_action(req: https_fn.Request) -> https_fn.Response:
 
@@ -98,6 +104,14 @@ def on_player_action(req: https_fn.Request) -> https_fn.Response:
             case "lobbyStart":
                 action_result = game.start(json_data, db)
 
+            case "categoryVote":
+                action_result = categoryVote.handle_action(json_data, db)
+
+            case "letterSelect":
+                action_result = categoryVote.handle_action(json_data, db)
+            case "pass":
+                action_result = _pass.handle_action(json_data, db)
+
         if action_result is not None:
             return action_result
 
@@ -105,4 +119,5 @@ def on_player_action(req: https_fn.Request) -> https_fn.Response:
     
 
     except Exception as e:
-        return generate_error(str(e), 500)
+        raise e
+        

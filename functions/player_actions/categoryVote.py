@@ -8,10 +8,9 @@ def handle_action(data: dict, db: FirestoreClient):
     player_id = data.get("playerId")
     action = data.get("action")
     action_details = action.get("details")
-    vote_type = action_details.get("voteType")
+    category = action_details.get("category")
     db.collection("games").document(game_id).update(
-                {f"state.gameState.votes.{player_id}": vote_type}
-            )
-    
+        {f"state.gameState.categoryVotes.{player_id}": category}
+    )
 
     return generate_success()

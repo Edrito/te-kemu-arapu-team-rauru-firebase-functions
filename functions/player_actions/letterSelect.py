@@ -8,10 +8,14 @@ def handle_action(data: dict, db: FirestoreClient):
     player_id = data.get("playerId")
     action = data.get("action")
     action_details = action.get("details")
-    vote_type = action_details.get("voteType")
+    letter = action_details.get("letter")
     db.collection("games").document(game_id).update(
-                {f"state.gameState.votes.{player_id}": vote_type}
-            )
+        {f"state.gameState.selectedLetter": letter}
+    )
+    #maybe add a check to see if the player is the current player turn
+    #if letter is "random" then do something
+
+
     
 
     return generate_success()

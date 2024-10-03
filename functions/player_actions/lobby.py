@@ -37,7 +37,12 @@ def upsert(data: dict, db: FirestoreClient):
     db.collection("games").document(player_id)\
         .set(details, merge=True)
 
-    return generate_success()
+    return generate_success(
+        custom_payload={
+            "gameId": player_id,
+            "lobbyCode": details['lobbyCode']
+        }
+    )
 
 
 def delete(data: dict, db: FirestoreClient):
@@ -53,22 +58,39 @@ def join(data: dict, db: FirestoreClient):
     player_id = data.get("playerId")
     game_id = data.get("gameId")
 
+    if game_id is not None:
+        game = db.collection("games").document(game_id).get()
 
-    if game_id is None:
-        return generate_error("No game id provided", 400)
-    
-    game = db.collection("games").document(game_id).get()
+        if not game.exists:
+            return generate_error("Game does not exist!", 400)
+        
 
-    if not game.exists:
-        return generate_error("Game does not exist!", 400)
-    
-
-    db.collection("games").document(game_id)\
-        .update({
-            "participants": firestore.ArrayUnion([player_id])
+        db.collection("games").document(game_id)\
+            .update({
+                "participants": firestore.ArrayUnion([player_id])
         })
+
+    else:
+        lobby_code = data.get("lobbyCode")
+        details = data.get("details")
+        if lobby_code is None:
+            lobby_code = details.get("lobbyCode")
+
+        if lobby_code is None:
+            return generate_error("No lobbyCode provided", 400)
+        
+        game = db.collection("games").where("lobbyCode", "==", lobby_code).get()
+        if len(game) == 0:
+            return generate_error("Game does not exist!", 400)
+        
+        game_id = game[0].id
+
+        db.collection("games").document(game_id).update({
+                "participants": firestore.ArrayUnion([player_id])
+            })
     
     return generate_success()
+    
 
 def leave(data: dict, db: FirestoreClient):
     
