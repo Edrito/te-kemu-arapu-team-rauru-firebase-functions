@@ -35,7 +35,7 @@ cred = credentials.Certificate(
 firebase_admin.initialize_app(cred)
 
 
-number_of_players = 3
+number_of_players =1
 users = {}
 # Sign in anonymously
 for i in range(number_of_players):
@@ -43,7 +43,7 @@ for i in range(number_of_players):
 
     # Get the ID token
     id_token = auth.create_custom_token(user.uid)
-
+    print(id_token.decode("utf-8"))
     # Define the URL for the Firebase function
     url = "https://on-player-action-5koq7jxpyq-uc.a.run.app"
     player_id = user.uid
