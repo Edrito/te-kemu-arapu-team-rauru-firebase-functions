@@ -35,7 +35,7 @@ def upsert(data: dict, db: FirestoreClient):
     details['state'] = {}
 
     db.collection("games").document(player_id)\
-        .set(details, merge=True)
+        .set(details, merge=False)
 
     return generate_success(
         custom_payload={

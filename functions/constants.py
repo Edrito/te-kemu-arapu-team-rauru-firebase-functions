@@ -1,16 +1,24 @@
 
 
+
+class TIMES:
+    choosing_category = 15
+    choosing_player = 5
+    letter_selection = 15
+    end = 15
+    
+
 CATEGORIES = [
     "food",
     "landmarks",
-    "nature",
+    "nature"
 ]
 
 
 DIFFICULTY_TIMES = {
     "Beginner": 30,
     "Intermediate": 15,
-    "Pro": 5,
+    "Pro": 5
 }
 
 MAORI_ALPHABET = "aehikmnoprutuw"
@@ -28,5 +36,5 @@ MAORI_ALPHABET_LIST = [
     "r",
     "t",
     "u",
-    "w",
+    "w"
 ]

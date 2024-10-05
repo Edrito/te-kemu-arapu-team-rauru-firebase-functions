@@ -22,6 +22,7 @@ from google.cloud.firestore import (
 app = firebase_admin.initialize_app()
 
 
+
 @https_fn.on_request(
     region="us-central1",
     ingress=options.IngressSetting("ALLOW_ALL"),
@@ -33,27 +34,49 @@ def manage_game_state(request: https_fn.Request) -> https_fn.Response:
     document = db.collection("games").document(game_id).get()
     doc_dict = document.to_dict()
     time = get_current_time()
+    if not document.exists:
+        return generate_error("Game not found!", 404)
+    
     phase_end = parse_time(doc_dict.get("state").get("phaseEnd"))
+    result = None 
 
     if not phase_end or time > phase_end:
+        try: 
 
-        result = state.manage_state(doc_dict, document.id, db)
+            result = state.manage_state(doc_dict, document.id, db)
 
-        if result.status_code != 200:
-            doc_dict["errors"] = (
-                doc_dict.get("errors") + 1 if doc_dict.get("errors") is not None else 1
-            )
+            if result.status_code != 200:
+                raise Exception(str(result))
+            
+            return result
+            
+        except Exception as e:
+            doc_dict["errors"] =doc_dict.get("errors") + 1 if doc_dict.get("errors") is not None else 1
+            previous_errors = doc_dict.get("previousErrors")
+            if previous_errors is not None:
+                previous_errors[str(doc_dict["errors"])] = str(e)
+            else:
+                doc_dict['previousErrors'] = {str(doc_dict["errors"]): str(e)}
+
+            if doc_dict.get("errors") > 5:
+                doc_dict["state"]['phase']="lobbyEnd"
+                ct.manage_cloud_task(
+                game_id, {"gameId": game_id}, get_future_time(5),  db=db, delete=True
+                )
+            else:
+                ct.manage_cloud_task(
+                game_id, {"gameId": game_id}, get_future_time(5),  db=db
+                )
+            doc_dict.pop("taskId", None)
             db.collection("games").document(game_id).set(doc_dict, merge=True)
-            ct.create_cloud_task(
-             game_id, {"gameId": game_id}, get_future_time(5),  db=db
-            )
-            #TODO if errors > 5, end game
-            return result
-        else:
-            return result
+
+            # if result is not None:
+            #     return result
+            
+            raise e
 
     else:
-        ct.create_cloud_task(
+        ct.manage_cloud_task(
          game_id, {"gameId": game_id}, phase_end,  db=db
         )
 

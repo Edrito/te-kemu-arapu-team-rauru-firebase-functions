@@ -34,7 +34,7 @@ def manage_state(doc_dict:dict,doc_id:str, db: FirestoreClient) -> https_fn.Resp
                 scores = {}
                 for player in doc_dict.get('participants'):
                     scores[player] = 0
-                doc_dict['state']['score'] = scores
+                doc_dict['state']['scores'] = scores
 
             db.collection("games").document(doc_id).set(doc_dict, merge=True)
         case 'end':

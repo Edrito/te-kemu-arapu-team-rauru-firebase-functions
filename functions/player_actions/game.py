@@ -29,7 +29,7 @@ def start(data: dict, db: FirestoreClient):
         merge=True,
     )
 
-    ct.create_cloud_task( player_id, {
+    ct.manage_cloud_task( player_id, {
         "gameId": player_id
     }, time_end,  db=db)
 
