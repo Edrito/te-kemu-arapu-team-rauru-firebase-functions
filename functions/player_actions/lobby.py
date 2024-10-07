@@ -4,7 +4,13 @@ from response_format import generate_error, generate_success
 from firebase_admin import firestore
 import random
 import string
-from constants import MAORI_ALPHABET
+from constants import MAORI_ALPHABET, CATEGORIES,MAORI_ALPHABET_LIST
+
+
+def add_categories_and_alphabet(data: dict):
+    data['categories'] = CATEGORIES
+    data['alphabet'] = MAORI_ALPHABET_LIST
+
 
 def upsert(data: dict, db: FirestoreClient):
     
@@ -33,6 +39,8 @@ def upsert(data: dict, db: FirestoreClient):
         player_id,
     ]
     details['state'] = {}
+
+    add_categories_and_alphabet(details)
 
     db.collection("games").document(player_id)\
         .set(details, merge=False)
