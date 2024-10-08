@@ -73,12 +73,20 @@ def eliminate_player(
 
     state = doc_dict.get("state")
     game_state = state.get("gameState")
+    game_state["phase"] = "choosingPlayer"
+
+
+    
     player_turn = game_state.get("playerTurn")
 
     players_eliminated = game_state.get("playersEliminated")
     players_eliminated.append(player_turn)
     game_state["playersEliminated"] = players_eliminated
-    game_state["phase"] = "choosingPlayer"
+    if len(players_eliminated) == len(doc_dict.get("participants")):
+        return manage_game(doc_dict, doc_id, db)
+    
+
+    
     end_time = get_future_time(TIMES.choosing_player)
     game_state["phaseEnd"] = end_time.isoformat()
 

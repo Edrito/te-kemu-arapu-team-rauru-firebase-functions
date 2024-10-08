@@ -85,9 +85,9 @@ def manage_game_state(request: https_fn.Request) -> https_fn.Response:
 
 @https_fn.on_request(
     region="us-central1",
-    cors=options.CorsOptions(
-        cors_origins="*",
-        cors_methods=["get", "post",],)
+    # cors=options.CorsOptions(
+    #     cors_origins="*",
+    #     cors_methods=["get", "post",],)
 )
 def on_player_action(req: https_fn.Request) -> https_fn.Response:
 
