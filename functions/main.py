@@ -61,7 +61,7 @@ def manage_game_state(request: https_fn.Request) -> https_fn.Response:
             if doc_dict.get("errors") > 5:
                 doc_dict["state"]['phase']="lobbyEnd"
                 ct.manage_cloud_task(
-                game_id, {"gameId": game_id}, get_future_time(5),  db=db, delete=True
+                game_id, {"gameId": game_id}, get_future_time(5),  db=db, deleteOnly=True
                 )
             else:
                 ct.manage_cloud_task(

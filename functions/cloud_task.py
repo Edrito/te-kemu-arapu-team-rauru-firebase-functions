@@ -27,16 +27,15 @@ def delete_cloud_task(gameId, taskId):
         print(f"Error deleting task: {e}")
 
 
-def manage_cloud_task(gameId, payload, time_to_execute: datetime.datetime, db: FirestoreClient = None, delete: bool = False):
+def manage_cloud_task(gameId, payload, time_to_execute: datetime.datetime, db: FirestoreClient = None, deleteOnly: bool = False, previous_task_id=None):
     project_id = 'te-kemu-arapu'
     location = 'us-central1'
 
-    doc = db.collection('games').document(gameId).get()
-    previous_task_id = doc.to_dict().get("taskId")
+    previous_task_id = db.collection('games').document(gameId).get().to_dict().get("taskId") if previous_task_id is None else previous_task_id
     if previous_task_id:
         delete_cloud_task(gameId, taskId=previous_task_id)
 
-    if delete:
+    if deleteOnly:
         return
 
     task_id = str(uuid.uuid4())
