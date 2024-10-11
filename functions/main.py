@@ -45,8 +45,8 @@ def manage_game_state(request: https_fn.Request) -> https_fn.Response:
 
             result = state.manage_state(doc_dict, document.id, db)
 
-            if result.status_code != 200:
-                raise Exception(str(result))
+            if result is None or  result.status_code != 200:
+                raise Exception(str(result)) if result is not None else Exception("No response from state management")
             
             return result
             

@@ -40,7 +40,7 @@ def manage_cloud_task(gameId, payload, time_to_execute: datetime.datetime, db: F
 
     task_id = str(uuid.uuid4())
     id = gameId + "_" + task_id
-    db.collection('games').document(gameId).set({"taskId": task_id}, merge=True)
+    db.collection('games').document(gameId).update({"taskId": task_id})
 
     # Create a client using default credentials
     client = tasks_v2.CloudTasksClient()

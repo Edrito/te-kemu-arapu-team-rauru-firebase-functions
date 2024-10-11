@@ -61,6 +61,7 @@ def manage_state(doc_dict:dict,doc_id:str, db: FirestoreClient) -> https_fn.Resp
                 doc_dict["state"]["phase"] = "loading"
                 db.collection("games").document(doc_id).set(doc_dict, merge=True)
 
+
         case 'lobbyEnd':
             return generate_success(msg="Game has ended, no more games to play!")
 
@@ -70,11 +71,11 @@ def manage_state(doc_dict:dict,doc_id:str, db: FirestoreClient) -> https_fn.Resp
     if not current_game_info:
         return generate_error("Current game does not exist", 404)
     
-    game_type = current_game_info.get('type')
+    game_type = str(current_game_info.get('type'))
 
-    match game_type:
+    match game_type.lower():
         case "category":
             return category_game.manage_game(doc_dict, doc_id, db)
-        case "randomized":
+        case "random":
             return randomized_game.manage_game(doc_dict, doc_id, db)
 
