@@ -13,6 +13,7 @@ def start(data: dict, db: FirestoreClient):
     db.collection("games").document(player_id).set(
         {
             "isLobbyOpen": False,
+            "timeStarted": dtf.get_current_time().isoformat(), 
             "state": {
                 "currentGame": "0",
                 "phase": "loading",

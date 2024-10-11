@@ -14,27 +14,34 @@ def handle_action(data: dict, db: FirestoreClient):
     game = db.collection("games").document(game_id).get()
     game_dict = game.to_dict()
     state = game_dict.get("state") if game_dict.get("state") else {}
-    participants = game_dict.get("participants") if game_dict.get("participants") else []
-    gameState = state.get("gameState") if state.get("gameState") else {}
+    participants = []
 
+    for part in game_dict.get("participants") if game_dict.get("participants") else []:
+        participants.append(part)
+
+    gameState = state.get("gameState") if state.get("gameState") else {}
+    playerTurn = gameState.get("playerTurn")
+    participants.remove(playerTurn)
+    
     votes = gameState.get("votes") if gameState.get("votes") else {}
     votes[player_id] = vote_type
 
     if len(votes.keys()) == len(participants):
         phaseEnd = gameState.get("phaseEnd") 
         time = parse_time(phaseEnd)
-        current_time = get_current_time()
-        difference = time - current_time
+        if time:
+            current_time = get_current_time()
+            difference = time - current_time
 
-        if difference.total_seconds() > 2:
-            future_time = get_future_time(2)
-            manage_cloud_task(game_id, 
-                              payload={"gameId": game_id}, 
-                              time_to_execute=future_time, 
-                              db=db,
-                              previous_task_id=game_dict.get("taskId"),
-                              )
-            gameState["phaseEnd"] = future_time.isoformat()
+            if difference.total_seconds() > 2:
+                future_time = get_future_time(2)
+                manage_cloud_task(game_id, 
+                                payload={"gameId": game_id}, 
+                                time_to_execute=future_time, 
+                                db=db,
+                                previous_task_id=game_dict.get("taskId"),
+                                )
+                gameState["phaseEnd"] = future_time.isoformat()
 
     gameState["votes"] = votes
 

@@ -24,17 +24,18 @@ def handle_action(data: dict, db: FirestoreClient):
 
     phaseEnd = gameState.get("phaseEnd") 
     time = parse_time(phaseEnd)
-    current_time = get_current_time()
-    difference = time - current_time
-    if difference.total_seconds() > 2:
-            future_time = get_future_time(2)
-            manage_cloud_task(game_id, 
-                              payload={"gameId": game_id}, 
-                              time_to_execute=future_time, 
-                              db=db,
-                              previous_task_id=game_dict.get("taskId"),
-                              )
-            gameState["phaseEnd"] = future_time.isoformat()
+    if time:
+        current_time = get_current_time()
+        difference = time - current_time
+        if difference.total_seconds() > 2:
+                future_time = get_future_time(2)
+                manage_cloud_task(game_id, 
+                                payload={"gameId": game_id}, 
+                                time_to_execute=future_time, 
+                                db=db,
+                                previous_task_id=game_dict.get("taskId"),
+                                )
+                gameState["phaseEnd"] = future_time.isoformat()
 
     gameState["selectedLetter"] = letter
     
