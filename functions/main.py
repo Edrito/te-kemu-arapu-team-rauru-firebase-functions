@@ -10,6 +10,7 @@ import player_actions.game as game
 import player_actions.categoryVote as categoryVote
 import player_actions._pass as _pass
 import player_actions.letterSelect as letterSelect
+import player_actions.hint as hint
 from response_format import generate_error, generate_success
 from datetime_functions import get_future_time, get_current_time, parse_time
 import cloud_task as ct
@@ -135,7 +136,9 @@ def on_player_action(req: https_fn.Request) -> https_fn.Response:
                 action_result = letterSelect.handle_action(json_data, db)
             case "pass":
                 action_result = _pass.handle_action(json_data, db)
-
+            case "hint":
+                action_result = hint.handle_action(json_data, db)
+                
         if action_result is not None:
             return action_result
 
