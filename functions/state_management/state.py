@@ -6,6 +6,8 @@ from state_management import category_game, randomized_game
 from player_actions import game
 from firebase_functions import https_fn
 from response_format import generate_error, generate_success
+from state_management.end_state_check  import end_game
+
 
 def manage_state(doc_dict:dict,doc_id:str, db: FirestoreClient) -> https_fn.Response:
     state = doc_dict.get("state")
@@ -27,6 +29,7 @@ def manage_state(doc_dict:dict,doc_id:str, db: FirestoreClient) -> https_fn.Resp
         case "loading":
             doc_dict["state"]["phase"] = "playing"
             doc_dict['state']['phaseEnd'] = None
+            doc_dict['state']['timeStarted'] = get_current_time().isoformat()
 
             #If first time playing, set scores to 0
             previous_scores = state.get('scores')
@@ -51,10 +54,7 @@ def manage_state(doc_dict:dict,doc_id:str, db: FirestoreClient) -> https_fn.Resp
                 if key == current_game:
                     next_key = True
             if not next_game:
-                doc_dict["state"]["phase"] = "lobbyEnd"
-                db.collection("games").document(doc_id).set(doc_dict, merge=True)
-                db.collection("gamesArchive").document(doc_id).set(doc_dict)
-                return generate_success()
+                return end_game(doc_dict, doc_id, db)
             else :
                 current_game = next_game
                 doc_dict["state"]["currentGame"] = current_game
@@ -78,4 +78,5 @@ def manage_state(doc_dict:dict,doc_id:str, db: FirestoreClient) -> https_fn.Resp
             return category_game.manage_game(doc_dict, doc_id, db)
         case "random":
             return randomized_game.manage_game(doc_dict, doc_id, db)
+
 

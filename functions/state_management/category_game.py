@@ -67,6 +67,57 @@ def end_game(doc_dict: dict, doc_id: str, db: FirestoreClient) -> https_fn.Respo
     return generate_success()
 
 
+def end_state_check(doc_dict, document_id, db) -> https_fn.Response:
+    settings = doc_dict.get("settings")
+    state = doc_dict.get("state")
+    current_game = state.get("currentGame")
+    current_game_config = settings.get("games").get(current_game)
+
+    if settings is None:
+            return None
+    if current_game_config is None:
+        return None
+    
+    end_conditions = current_game_config.get("endConditions")
+
+
+    
+    if end_conditions is None:
+        return None
+    max_categories = end_conditions.get("maxCategories")
+    max_score = end_conditions.get("score")
+    time_minutes = end_conditions.get("time")
+    
+    player_scores = state.get("scores") # {playerId: score}
+    if player_scores is None:
+        return None
+    
+    if max_score is not None:
+        for player_id, score in player_scores.items():
+            if score >= max_score:
+                end_game(doc_dict, document_id, db)
+                return generate_success("Max player score reached", 200)
+            
+    
+        
+    if time_minutes is not None:
+        phase_end = parse_time(state.get('timeStarted'))
+        if phase_end is not None:
+            if abs((get_current_time() - phase_end).min) > time_minutes :
+                end_game(doc_dict, document_id, db)
+                return generate_success("Time limit reached", 200)
+
+
+    if max_categories is not None:
+        categories_covered = state.get("gameState").get("categoriesCovered")
+        if len(categories_covered) > max_categories:
+            end_game(doc_dict, document_id, db)
+            return generate_success("Max categories reached", 200)
+
+
+    return None
+
+
 def eliminate_player(
     doc_dict: dict, doc_id: str, db: FirestoreClient
 ) -> https_fn.Response:
@@ -153,6 +204,9 @@ def manage_game(doc_dict: dict, doc_id: str, db: FirestoreClient) -> https_fn.Re
     phaseEnd = parse_time(game_state.get("phaseEnd"))
     time = get_current_time()
 
+
+
+
     if time < phaseEnd:
         queue_game_state_call(
             game_state=game_state,
@@ -162,6 +216,13 @@ def manage_game(doc_dict: dict, doc_id: str, db: FirestoreClient) -> https_fn.Re
             end_time=phaseEnd,
         )
         return generate_success()
+    
+
+
+    end_game_check_result = end_state_check(doc_dict, doc_id, db)
+
+    if end_game_check_result is not None:
+        return end_game(doc_dict, doc_id, db)
 
     match phase:
         case "choosingCategory":
@@ -371,3 +432,8 @@ def manage_game(doc_dict: dict, doc_id: str, db: FirestoreClient) -> https_fn.Re
             )
 
             return generate_success()
+
+
+
+
+

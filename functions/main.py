@@ -18,7 +18,7 @@ import state_management.state as state
 from google.cloud.firestore import (
     Client as FirestoreClient,
 )  # importing the return type of firestore.client()
-
+from state_management.end_state_check import end_state_check
 
 app = firebase_admin.initialize_app()
 
@@ -33,17 +33,26 @@ def manage_game_state(request: https_fn.Request) -> https_fn.Response:
     game_id = json_data.get("gameId")
     db: FirestoreClient = firestore.client()
     document = db.collection("games").document(game_id).get()
+
     doc_dict = document.to_dict()
+
     time = get_current_time()
+
     if not document.exists:
         return generate_error("Game not found!", 404)
     
+
+
+    end_state_result = end_state_check(doc_dict=doc_dict, document_id=game_id, db=db)
+
+    if end_state_result is not None:
+        return end_state_result
+
+
     phase_end = parse_time(doc_dict.get("state").get("phaseEnd"))
     result = None 
-
     if not phase_end or time > phase_end:
         try: 
-
             result = state.manage_state(doc_dict, document.id, db)
 
             if result is None or  result.status_code != 200:
@@ -52,6 +61,7 @@ def manage_game_state(request: https_fn.Request) -> https_fn.Response:
             return result
             
         except Exception as e:
+
             doc_dict["errors"] =doc_dict.get("errors") + 1 if doc_dict.get("errors") is not None else 1
             previous_errors = doc_dict.get("previousErrors")
             if previous_errors is not None:
@@ -71,9 +81,6 @@ def manage_game_state(request: https_fn.Request) -> https_fn.Response:
             doc_dict.pop("taskId", None)
             db.collection("games").document(game_id).set(doc_dict, merge=True)
 
-            # if result is not None:
-            #     return result
-            
             raise e
 
     else:
