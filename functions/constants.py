@@ -5,11 +5,10 @@ class TIMES:
     end = 15
 
 
-# Generate hints based on the category, and the starting letter of a maori word
 HINTS = {
     "food": {
         "a": {"word": "āwenewene", "definition": "sickly sweet"},
-        "e": {"word": "E WORD", "definition": "E WORD"},
+        "e": {"word": "-", "definition": "-"},
         "h": {"word": "hēki", "definition": "egg"},
         "i": {"word": "īnanga", "definition": "whitebait"},
         "k": {"word": "kūmara", "definition": "sweet potato"},
