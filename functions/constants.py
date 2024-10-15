@@ -22,7 +22,7 @@ HINTS = {
         "u": {"word": "uhi", "definition": "yam"},
         "w": {"word": "witi", "definition": "wheat"},
     },
-    "locations": {
+    "location": {
         "a": {"word": "Akaroa", "definition": "Akaroa is a small town on Banks Peninsula in the Canterbury Region of the South Island of New Zealand"},
         "e": {"word": "Eketāhuna", "definition": "Eketāhuna is a small rural settlement, in the south of the Tararua District and the Manawatū-Whanganui region of New Zealand's North Island"},
         "h": {"word": "Hāwera", "definition": "Hāwera is the second-largest centre in the Taranaki region of New Zealand's North Island"},
@@ -58,7 +58,7 @@ HINTS = {
 CATEGORIES = ["food", "locations", "nature"]
 
 
-DIFFICULTY_TIMES = {"Beginner": 30, "Intermediate": 15, "Pro": 5}
+DIFFICULTY_TIMES = {"Beginner": 30, "Intermediate": 20, "Pro": 10}
 
 MAORI_ALPHABET = "aehikmnoprutuw"
 
